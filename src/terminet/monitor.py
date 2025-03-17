@@ -4,7 +4,7 @@ import time
 from textual.containers import HorizontalGroup
 from textual.widgets import Button, Input, DataTable, Sparkline
 from scapy.all import IP, TCP, UDP, sniff
-from network_table import NetworkTable
+from terminet.network_table import NetworkTable
 from textual.app import ComposeResult
 
 

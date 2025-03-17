@@ -1,8 +1,8 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Label
 from textual.containers import Horizontal, VerticalScroll
-from network_table import NetworkTable
-from monitor import Monitor
+from terminet.network_table import NetworkTable
+from terminet.monitor import Monitor
 
 
 class NetworkMonitorApp(App):
