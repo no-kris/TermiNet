@@ -1,0 +1,13 @@
+Horizontal#footer-outer {
+    height: 1;
+    dock: bottom;
+}
+
+Horizonal#footer-inner {
+    width: 75%;
+}
+
+Label#right-label {
+    width: 20%;
+    text-align: right;
+}
