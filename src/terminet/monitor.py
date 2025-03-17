@@ -2,7 +2,7 @@ import asyncio
 import threading
 import time
 from textual.containers import HorizontalGroup
-from textual.widgets import Button, Input
+from textual.widgets import Button, Input, DataTable, Sparkline
 from scapy.all import IP, TCP, UDP, sniff
 from network_table import NetworkTable
 from textual.app import ComposeResult
@@ -30,6 +30,7 @@ class Monitor(HorizontalGroup):
         yield self.__iface
         yield Button("Start", id="start", variant="success")
         yield Button("Stop", id="stop", variant="error")
+        yield Button("Clear", id="clear", variant="default")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press events for starting and stopping app."""
@@ -43,6 +44,15 @@ class Monitor(HorizontalGroup):
             self.__running = False
             self.app.notify("Stopping packet capture")
             self.remove_class("started")
+        elif btn_event == "clear":
+            if self.__running:
+                self.app.notify("Stop app to clear data")
+            else:
+                table = self.__network_table.query_one(DataTable)
+                table.clear()
+                graph = self.__network_table.query_one(Sparkline)
+                graph.data.clear()
+                graph.refresh()
 
     async def start_sniffing(self) -> None:
         """Start sniffing network packets in seperate thread."""
@@ -64,8 +74,12 @@ class Monitor(HorizontalGroup):
                 interface = "eth0"
                 self.app.notify(
                     f"No interface specified, using default {interface}")
-            while self.__running:
-                sniff(iface=interface, prn=self.packet_handler, store=False)
+            sniff(
+                iface=interface,
+                prn=self.packet_handler,
+                store=False,
+                stop_filter=lambda _: not self.__running
+            )
         except Exception as e:
             self.app.notify(f"Error: ", e)
             self.__running = False
@@ -75,8 +89,9 @@ class Monitor(HorizontalGroup):
            to extract packet information and update app widgets (network table, sparkline)."""
         if IP in packet:
             packet_info = self.get_packet_info(packet)
-            self.add_packet_to_table(packet_info)
-            self.add_bandwidth_to_sparkline(packet_info["size"])
+            self.app.call_from_thread(self.add_packet_to_table, packet_info)
+            self.app.call_from_thread(
+                self.add_bandwidth_to_sparkline, packet_info["size"])
 
     def get_packet_info(self, packet) -> dict:
         """Extract network packet information and store it in a hash table."""

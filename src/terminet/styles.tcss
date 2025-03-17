@@ -49,6 +49,12 @@ Button {
     dock: left;
 }
 
+#clear {
+    background: yellow;
+    color: black;
+    dock: right;
+}
+
 .started #start {
     display: none;
 }

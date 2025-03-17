@@ -24,6 +24,7 @@ class NetworkTable(Widget):
         """Add a new row to the data table."""
         src, dst, proto, sport, dport, size = tup
         self.table.add_row(src, dst, proto, sport, dport, size)
+        asyncio.sleep(0.5)
 
     def update_graph(self, bandwidth) -> None:
         """Handle updating the sparkline graph by appending bandwidth usage which will
@@ -33,4 +34,4 @@ class NetworkTable(Widget):
         self.graph.data.append(bandwidth)
         if len(self.graph.data) > 100:
             self.graph.data = self.graph.data[-100:]
-        asyncio.sleep(1)
+        asyncio.sleep(0.5)

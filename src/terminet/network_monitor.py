@@ -13,7 +13,7 @@ class NetworkMonitorApp(App):
 
     def compose(self) -> ComposeResult:
         """Create child widgets for App."""
-        yield Header()
+        yield Header(show_clock=True)
         with Horizontal(id="footer-outer"):
             with Horizontal(id="footer-inner"):
                 yield Footer()
@@ -27,6 +27,11 @@ class NetworkMonitorApp(App):
         self.theme = (
             "textual-dark" if self.theme == "textual-light" else "textual-light"
         )
+
+    def on_mount(self) -> None:
+        """Change header title."""
+        self.title = "TermiNet"
+        self.sub_title = "Network Monitoring Tool"
 
 
 if __name__ == "__main__":
