@@ -25,3 +25,34 @@ Sparkline {
     color: yellow;
     margin: 1;
 }
+
+Monitor {
+    background: $boost;
+    height: 5;
+    margin: 1;
+    padding: 1;
+    min-width: 50;
+}
+
+Button {
+    width: 16;
+}
+
+#start {
+    color: white;
+    dock: left;
+}
+
+#stop {
+    color: white;
+    display: none;
+    dock: left;
+}
+
+.started #start {
+    display: none;
+}
+
+.started #stop {
+    display: block;
+}
