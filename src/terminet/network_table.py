@@ -20,8 +20,9 @@ class NetworkTable(Widget):
         )
         yield self.table
 
-    def update_table(self, src, dst, proto, sport, dport, size) -> None:
+    def update_table(self, tup: tuple) -> None:
         """Add a new row to the data table."""
+        src, dst, proto, sport, dport, size = tup
         self.table.add_row(src, dst, proto, sport, dport, size)
 
     def update_graph(self, bandwidth) -> None:

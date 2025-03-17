@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import time
 from textual.containers import HorizontalGroup
 from textual.widgets import Button, Input
 from scapy.all import IP, TCP, UDP, sniff
@@ -14,6 +15,7 @@ class Monitor(HorizontalGroup):
     def __init__(self, network_table: NetworkTable):
         super().__init__()
         self.__network_table = network_table
+        self.__start_time = time.time()
         self.__sniffing_thread = None
         self.__running = False
         self.__iface = Input(
@@ -59,9 +61,59 @@ class Monitor(HorizontalGroup):
             if interface:
                 self.app.notify(f"Sniffing on interface: {interface}")
             else:
-                default_interface = "eth0"
+                interface = "eth0"
                 self.app.notify(
-                    f"No interface specified, using default {default_interface}")
+                    f"No interface specified, using default {interface}")
+            while self.__running:
+                sniff(iface=interface, prn=self.packet_handler, store=False)
         except Exception as e:
             self.app.notify(f"Error: ", e)
             self.__running = False
+
+    def packet_handler(self, packet) -> None:
+        """Filter network packets that contain an IP. Call helper methods
+           to extract packet information and update app widgets (network table, sparkline)."""
+        if IP in packet:
+            packet_info = self.get_packet_info(packet)
+            self.add_packet_to_table(packet_info)
+            self.add_bandwidth_to_sparkline(packet_info["size"])
+
+    def get_packet_info(self, packet) -> dict:
+        """Extract network packet information and store it in a hash table."""
+        packet_info = {
+            "source": packet[IP].src,
+            "destination": packet[IP].dst,
+            "protocol": self.get_protocol_name(packet[IP].proto),
+            "size": len(packet),
+            "sport": None,
+            "dport": None
+        }
+        if TCP in packet:
+            packet_info.update(
+                {"sport": packet[TCP].sport, "dport": packet[TCP].dport}
+            )
+        elif UDP in packet:
+            packet_info.update(
+                {"sport": packet[UDP].sport, "dport": packet[UDP].dport}
+            )
+        return packet_info
+
+    def get_protocol_name(self, proto_num: int) -> str:
+        """Return the associated protocol mapped to protocol number parameter."""
+        return self.__protocol_map.get(proto_num, f"OTHER {proto_num}")
+
+    def add_packet_to_table(self, packet_info) -> None:
+        """Update the network table with the network packet information stored
+           in a tuple."""
+        tup = (
+            packet_info["source"], packet_info["destination"], packet_info["protocol"],
+            packet_info["sport"], packet_info["dport"], packet_info["size"]
+        )
+        self.__network_table.update_table(tup)
+
+    def add_bandwidth_to_sparkline(self, packet_size) -> None:
+        """Calculate bandwidth usage based on the size of the packet divided by 1024 to get KB/s."""
+        elapsed_time = time.time() - self.__start_time
+        if elapsed_time > 0:
+            bandwidth_kbps = packet_size / (elapsed_time * (1000*1024*8))
+            self.__network_table.update_graph(bandwidth_kbps)
