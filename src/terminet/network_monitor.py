@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Label
-from textual.containers import Horizontal
-from textual import events
+from textual.containers import Horizontal, VerticalScroll
+from network_table import NetworkTable
 
 
 class NetworkMonitorApp(App):
@@ -17,6 +17,8 @@ class NetworkMonitorApp(App):
             with Horizontal(id="footer-inner"):
                 yield Footer()
             yield Label("Press 'ctrl-q' to quit application", id="right-label")
+        network_table = NetworkTable()
+        yield VerticalScroll(network_table)
 
     def action_toggle_dark(self) -> None:
         """Switch between light and dark theme."""
